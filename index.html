@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>PDF Insertion Tool</title>
+</head>
+<body>
+  <button id="selectFiles">Select Files</button>
+  <div>
+    <label for="PageNumber">Insert Page number:</label>
+    <input type="number"id="PageNumber" min="1" step="1">
+  </div>
+  <button id="insertPDF">Insert PDF</button>
+  <script>
+    document.getElementById('selectFiles').addEventListener('click', async () => {
+      const options = {
+        title: 'Select PDF Files',
+        filters: [{ name: 'PDF Files', extensions: ['pdf'] }],
+        properties: ['openFile', 'multiSelections'],
+      };
+      console.log('Selecting PDF files...' + JSON.stringify(options));
+      // Send an IPC message to the main process to request file paths
+      window.ipcRenderer.invoke('select-files', options);
+    });
+
+    document.getElementById('insertPDF').addEventListener('click', async () => {
+      const selectedFiles = document.getElementById('selectedFiles').innerText.split(', ');
+      const insertPageNumber = parseInt(document.getElementById('PageNumber').value);
+      console.log('Inserting PDF...' + JSON.stringify(selectedFiles));
+      console.log('Inserting PDF...' + selectedFiles.length)
+
+      if (selectedFiles.length >=3 && !isNaN(insertPageNumber)&&insertPageNumber>=1) {
+        const inputPdfPath = selectedFiles[0].trim();
+        const insertPdfPath = selectedFiles[1].trim();
+        const insertPageNumber = parseInt(selectedFiles[2].trim());
+        console.log('Inserting PDF...' + inputPdfPath);
+        console.log('Inserting PDF...' + insertPdfPath);
+        console.log('Inserting PDF...' + insertPageNumber);       
+
+        // Send an IPC message to the main process to initiate PDF insertion
+        const message = await window.ipcRenderer.invoke('insert-pdf', inputPdfPath, insertPdfPath, insertPageNumber);
+        console.log(message);
+      } else {
+        console.error('Please select the input PDF, insert PDF, and insert page number.');
+      }
+    });
+  </script>
+  <p id="selectedFiles"></p>
+</body>
+</html>
